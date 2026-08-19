@@ -4,7 +4,7 @@ dotenv.config();
 
 function connectDB()
 {
-    try{
+    try{ 
         mongoose.connect(process.env.MONGODB_URL, {
             dbName: "Users",
         })
