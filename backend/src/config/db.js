@@ -4,8 +4,10 @@ dotenv.config();
 
 function connectDB()
 {
-    try{
-        mongoose.connect(process.env.MONGODB_URL)
+    try{ 
+        mongoose.connect(process.env.MONGODB_URL, {
+            dbName: "Users",
+        })
         .then(()=>{
             console.log("MongoDB connected successfully")
         })

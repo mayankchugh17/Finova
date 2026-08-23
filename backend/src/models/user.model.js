@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const bcrypt = required("bcryptjs");
-const userSchema = new mongoose.Scheme({
+const bcrypt = require("bcryptjs");
+const userSchema = new mongoose.Schema({
     email:{
         type:String,
         required:[true, "Please provide an email"],
@@ -24,12 +24,12 @@ const userSchema = new mongoose.Scheme({
 },{timestamps:true});
 
 // This function exectues before any operation on userSchema like save, update, delete etc.
-userSchema.pre("save", async function (next){
-    if(!this.isModified("password")) return next();
+userSchema.pre("save", async function (){
+    if(!this.isModified("password")) return;
 
     const hashedPassword = await bcrypt.hash(this.password, 10);
     this.password = hashedPassword;
-    return next();
+  
 })
 
 // Comparing password
