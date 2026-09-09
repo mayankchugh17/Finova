@@ -32,12 +32,12 @@ const registerUser = async (req, res) =>{
 
 const loginUser = async (req, res) =>{
     const {email, password} = await req.body;
-    const user = await User.findOne({email});
+    const user = await User.findOne({email}).select("+password");
     if(!user){
         return res.status(401).json({message: "Invalid email or password"});
     }
-
-    const isPasswordValid = await User.comparePassword(password);
+    // console.log("Email ", email, "Password ", password);
+    const isPasswordValid = await user.comparePassword(password);
     if(!isPasswordValid){
         return res.status(401).json({message: "Invalid email or password"}); 
     }
