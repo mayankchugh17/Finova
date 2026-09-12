@@ -63,7 +63,7 @@ const loginUser = async (req, res) => {
         name: user.name,
       },
     });
-
+    console.log("User Email and name ", user.email, user.name);
     await emailService.sendLoginEmail(user.email, user.name)
     .then(()=>{
       console.log("Email sent successfully!")

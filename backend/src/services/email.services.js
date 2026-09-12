@@ -72,6 +72,7 @@ const html = `<p>Hello ${name},</p><p>Thank you for Login at Finova Bank. We're 
 
   await sendEmail(userEmail, subject, text, html);
 };
+
 module.exports = {
   sendRegistrationEmail,
   sendLoginEmail
