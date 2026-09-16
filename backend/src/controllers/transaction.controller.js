@@ -1,5 +1,8 @@
+const mongoose = require("mongoose");
 const Accounts = require("../models/accounts.model.js");
 const Transaction = require("../models/transactions.model.js");
+const Ledger = require("../models/ledger.model.js");
+const {sendTransactionEmail} = require("../services/email.services.js");
 
 async function createTransaction(req, res) {
 
@@ -61,5 +64,52 @@ async function createTransaction(req, res) {
   {
     return res.status(400).json({message:"Both fromAccount and toAccount must be ACTIVE for processing transaction."})
   }
+
+  // check balance
+  const balance = await fromUserAccount.getBalance();
+  if(balance<amount)
+  {
+    return res.status(400).json({message:`Insufficient balance. Current balance is ${balance}.`});
+  }
   
+  // 4. Creating transaction in mongoose (means operations in this will all be executed or none);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  const transaction = await Transaction.create({
+    fromAccount,
+    toAccount,
+    amount,
+    idempotencyKey,
+    status:"PENDING"
+  }, {session});
+
+  const creditLedgerEntry = await Ledger.create({
+    account: toAccount,
+    amount:amount,
+    transaction: transaction._id,
+    type:"CREDIT"
+  }, {session});
+
+   const debitLedgerEntry = await Ledger.create({
+    account: fromAccount,
+    amount:amount,
+    transaction: transaction._id,
+    type:"DEBIT"
+  }, {session});
+
+  // Transaction Done
+  transaction.status = "COMPLETED";
+  await transaction.save({session});
+
+  // End Session and transaction
+  await session.commitTransaction();
+  session.endSession();
+
+  // Send Email for deduction
+  await sendTransactionEmail(req.user.email, req.user.name, amount,toAccount._id );
+  return res.status(201).json({message:"Transaction completed successfully", transaction})
 }
+
+
+module.exports = {createTransaction};
